@@ -1,5 +1,9 @@
 name: md2zhihu
-on: [push]
+
+on:
+  push:
+    branches: [master]
+
 jobs:
   md2zhihu:
     runs-on: ubuntu-latest
