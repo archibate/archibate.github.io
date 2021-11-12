@@ -104,4 +104,4 @@ theme: landscape
 deploy:
   type: git
   repo: https://github.com/archibate/archibate.github.io.git
-  branch: master
+  branch: gh-pages
