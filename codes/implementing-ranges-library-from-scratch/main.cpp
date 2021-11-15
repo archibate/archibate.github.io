@@ -108,7 +108,6 @@ static constexpr auto enumerate = pipable([] (auto &&r) {
 template <class ...Bases>
 struct zip_iterator {
     std::tuple<Bases...> m_it;
-    std::size_t m_index = 0;
 
     template <std::size_t ...Is>
     constexpr decltype(auto) _helper_star(std::index_sequence<Is...>) const {
@@ -116,12 +115,12 @@ struct zip_iterator {
     }
 
     constexpr decltype(auto) operator*() const {
-        _helper_star(std::make_index_sequence<sizeof...(Bases)>{});
+        return _helper_star(std::make_index_sequence<sizeof...(Bases)>{});
     }
 
     template <std::size_t ...Is>
     constexpr void _helper_inc(std::index_sequence<Is...>) {
-        (++*std::get<Is>(m_it), ...);
+        (++std::get<Is>(m_it), ...);
     }
 
     constexpr zip_iterator &operator++() {
@@ -129,29 +128,44 @@ struct zip_iterator {
         return *this;
     }
 
+    template <std::size_t ...Is>
+    constexpr bool _helper_neq(zip_iterator const &that, std::index_sequence<Is...>) const {
+        return ((std::get<Is>(m_it) != std::get<Is>(that.m_it)) && ...);
+    }
+
     constexpr bool operator!=(zip_iterator const &that) const {
-        return m_it != that.m_it;
+        return _helper_neq(that, std::make_index_sequence<sizeof...(Bases)>{});
     }
 };
 
-template <class Base>
-enumerate_iterator(Base) -> enumerate_iterator<Base>;
+template <class ...Bases>
+zip_iterator(std::tuple<Bases...> &&) -> zip_iterator<Bases...>;
 
-static constexpr auto enumerate = pipable([] (auto &&r) {
+static constexpr auto zip = pipable([] (auto &&...rs) {
     return range
-        ( enumerate_iterator{r.begin()}
-        , enumerate_iterator{r.end()}
+        ( zip_iterator{std::tuple<decltype(rs.begin())...>{rs.begin()...}}
+        , zip_iterator{std::tuple<decltype(rs.end())...>{rs.end()...}}
         );
 });
 
 
 int main() {
-    std::vector<int> list = {1, 2, 3, 4};
-    for (auto &&x: list | map([] (auto &&x) { return x + 1; })) {
+    std::vector<int> list1 = {1, 2, 3, 4};
+    std::vector<int> list2 = {6, 5, 4, 3, 2, 1};
+    std::vector<float> list3 = {3.14f, 2.718f, 1.414f};
+    for (auto &&x: list1 | map([] (auto &&x) { return x + 1; })) {
         std::cout << x << std::endl;
     }
-    for (auto &&[x, y]: enumerate(list)) {
+    for (auto &&[x, y]: enumerate(list1)) {
+        y += 114514;
         std::cout << x << ' ' << y << std::endl;
+    }
+    for (auto &&[x, y, z]: zip(list1, list2, list3)) {
+        y -= 32;
+        std::cout << x << ' ' << y << ' ' << z << std::endl;
+    }
+    for (auto &&x: list2) {
+        std::cout << x << std::endl;
     }
     return 0;
 }
