@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <tuple>
 
 
 template <class It>
@@ -50,7 +51,7 @@ struct map_iterator {
     }
 
     constexpr map_iterator &operator++() {
-        m_it++;
+        ++m_it;
         return *this;
     }
 
@@ -83,12 +84,52 @@ struct enumerate_iterator {
     }
 
     constexpr enumerate_iterator &operator++() {
-        m_it++;
-        m_index++;
+        ++m_it;
+        ++m_index;
         return *this;
     }
 
     constexpr bool operator!=(enumerate_iterator const &that) const {
+        return m_it != that.m_it;
+    }
+};
+
+template <class Base>
+enumerate_iterator(Base) -> enumerate_iterator<Base>;
+
+static constexpr auto enumerate = pipable([] (auto &&r) {
+    return range
+        ( enumerate_iterator{r.begin()}
+        , enumerate_iterator{r.end()}
+        );
+});
+
+
+template <class ...Bases>
+struct zip_iterator {
+    std::tuple<Bases...> m_it;
+    std::size_t m_index = 0;
+
+    template <std::size_t ...Is>
+    constexpr decltype(auto) _helper_star(std::index_sequence<Is...>) const {
+        return std::tuple<decltype(*std::get<Is>(m_it))...>(*std::get<Is>(m_it)...);
+    }
+
+    constexpr decltype(auto) operator*() const {
+        _helper_star(std::make_index_sequence<sizeof...(Bases)>{});
+    }
+
+    template <std::size_t ...Is>
+    constexpr void _helper_inc(std::index_sequence<Is...>) {
+        (++*std::get<Is>(m_it), ...);
+    }
+
+    constexpr zip_iterator &operator++() {
+        _helper_inc(std::make_index_sequence<sizeof...(Bases)>{});
+        return *this;
+    }
+
+    constexpr bool operator!=(zip_iterator const &that) const {
         return m_it != that.m_it;
     }
 };

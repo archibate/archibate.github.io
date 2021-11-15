@@ -308,7 +308,7 @@ struct map_iterator {
     }
 
     constexpr map_iterator &operator++() {
-        m_it++;
+        ++m_it;
         return *this;
     }
 
@@ -406,8 +406,8 @@ struct enumerate_iterator {
     }
 
     constexpr enumerate_iterator &operator++() {
-        m_it++;
-        m_index++;
+        ++m_it;
+        ++m_index;
         return *this;
     }
 
@@ -612,7 +612,7 @@ struct map_iterator {
     }
 
     constexpr map_iterator &operator++() {
-        m_it++;
+        ++m_it;
         return *this;
     }
 
@@ -645,8 +645,8 @@ struct enumerate_iterator {
     }
 
     constexpr enumerate_iterator &operator++() {
-        m_it++;
-        m_index++;
+        ++m_it;
+        ++m_index;
         return *this;
     }
 
