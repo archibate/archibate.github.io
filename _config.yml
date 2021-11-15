@@ -103,5 +103,6 @@ theme: landscape
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: https://gitee.com/archibate/archibate.git
+  #repo: https://gitee.com/archibate/archibate.git
+  repo: https://github.com/archibate/archibate.github.io.git
   branch: gh-pages
