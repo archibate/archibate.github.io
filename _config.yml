@@ -104,7 +104,9 @@ theme: freemind.386
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: git
-  #repo: https://gitee.com/archibate/archibate.git
-  repo: https://github.com/archibate/archibate.github.io.git
-  branch: gh-pages
+  - type: git
+    repo: https://github.com/archibate/archibate.github.io.git
+    branch: gh-pages
+  - type: git
+    repo: https://gitee.com/archibate/archibate.git
+    branch: gh-pages
