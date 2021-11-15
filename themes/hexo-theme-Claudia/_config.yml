@@ -13,12 +13,12 @@ widgets:
 
 # social config
 social:
-  zhihu:
-  twitter: /
+  zhihu: https://www.zhihu.com/people/di-san-miao-mo-de-shuang-qu-zheng-qie-43
+  twitter: https://twitter.com/archibate
   facebook: /
   linkedin:
   instagram: /
-  github: haojen
+  github: archibate
 
 user:
   name: archibate
