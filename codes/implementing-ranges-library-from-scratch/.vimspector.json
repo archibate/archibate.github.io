@@ -1,0 +1,22 @@
+{
+    "configurations": {
+        "main": {
+            "adapter": "vscode-cpptools",
+            "configuration": {
+                "Mimode": "",
+                "args": [],
+                "cwd": "${workspaceRoot}",
+                "program": "/tmp/build/home/bate/Codes/archibate.github.io/codes/implementing-ranges-library-from-scratch/main",
+                "request": "launch",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "ignoreFailures": "true",
+                        "text": "-enable-pretty-printing"
+                    }
+                ],
+                "type": ""
+            }
+        }
+    }
+}

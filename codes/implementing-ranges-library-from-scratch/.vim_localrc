@@ -1,0 +1,3 @@
+" vim: ft=vim
+
+let g:cmake_build_target = 'main'
