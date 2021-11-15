@@ -679,5 +679,5 @@ int main() {
 }
 ```
 
-Also checkout my [personal website](archibate.gitee.io) where this post
-were uploaded, Zhihu will also be uploaded synchronously.
+Also checkout my [personal website](archibate.top) [[国内镜像站]](archibate.gitee.io)
+where this post were uploaded, Zhihu will also be uploaded synchronously.
