@@ -35,6 +35,10 @@ links:
     url: https://twitter.com/archibate
     intro: "My Twitter account."
     icon: "fa fa-twitter"
+  - title: This Blog
+    url: https://github.com/archibate/archibate.github.io
+    intro: "Github repository of this blog."
+    icon: "fa fa-github"
   - title: Zeno
     url: https://github.com/zenustech/zeno
     intro: "Zeno Github repository."
