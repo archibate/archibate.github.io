@@ -98,7 +98,8 @@ ignore:
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
 #theme: landscape
-theme: hexo-theme-Claudia
+#theme: claudia
+theme: freemind.386
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
