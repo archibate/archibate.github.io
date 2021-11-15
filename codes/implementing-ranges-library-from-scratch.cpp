@@ -1,6 +1,6 @@
-#include <array>
 #include <vector>
 #include <iostream>
+
 
 template <class It>
 struct range {
@@ -15,9 +15,8 @@ struct range {
     constexpr It end() const { return m_end; }
 };
 
-// define the deduction rule:
 template <class It>
-range(It begin, It end) -> range<It>;
+range(It, It) -> range<It>;
 
 
 template <class F>
@@ -29,13 +28,13 @@ struct pipable
         : m_f(std::move(f))
     {}
 
-    // function style: map(func)(range)
-    constexpr decltype(auto) operator()(auto &&...rs) const {
+    template <class ...Rs>
+    constexpr decltype(auto) operator()(Rs &&...rs) const {
         return m_f(range(rs.begin(), rs.end())...);
     }
 
-    // pipe style: range | map(func)
-    friend constexpr decltype(auto) operator|(auto &&r, pipable const &self) {
+    template <class R>
+    friend constexpr decltype(auto) operator|(R &&r, pipable const &self) {
         return self(std::forward<decltype(r)>(r));
     }
 };
@@ -63,7 +62,8 @@ struct map_iterator {
 template <class Func, class Base>
 map_iterator(Func, Base) -> map_iterator<Func, Base>;
 
-static constexpr auto map(auto &&f) {
+template <class F>
+static constexpr auto map(F &&f) {
     return pipable([=] (auto &&r) {
         return range
             ( map_iterator{f, r.begin()}
@@ -73,10 +73,44 @@ static constexpr auto map(auto &&f) {
 }
 
 
+template <class Base>
+struct enumerate_iterator {
+    Base m_it;
+    std::size_t m_index = 0;
+
+    constexpr decltype(auto) operator*() const {
+        return std::pair<std::size_t, decltype(*m_it)>(m_index, *m_it);
+    }
+
+    constexpr enumerate_iterator &operator++() {
+        m_it++;
+        m_index++;
+        return *this;
+    }
+
+    constexpr bool operator!=(enumerate_iterator const &that) const {
+        return m_it != that.m_it;
+    }
+};
+
+template <class Base>
+enumerate_iterator(Base) -> enumerate_iterator<Base>;
+
+static constexpr auto enumerate = pipable([] (auto &&r) {
+    return range
+        ( enumerate_iterator{r.begin()}
+        , enumerate_iterator{r.end()}
+        );
+});
+
+
 int main() {
     std::vector<int> list = {1, 2, 3, 4};
     for (auto &&x: list | map([] (auto &&x) { return x + 1; })) {
         std::cout << x << std::endl;
+    }
+    for (auto &&[x, y]: enumerate(list)) {
+        std::cout << x << ' ' << y << std::endl;
     }
     return 0;
 }
