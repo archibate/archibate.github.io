@@ -1,7 +1,7 @@
 ---
 title: 安装 Claudia 主题出错
 date: 2021-11-15 23:28:51
-tags: nodejs
+tags: hexo
 ---
 
 发现一个好看的 Hexo 主题：https://github.com/Haojen/hexo-theme-Claudia
