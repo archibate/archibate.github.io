@@ -143,6 +143,46 @@ var _hmt = _hmt || [];
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2021/11/16/hexo-deploy-removes-cname-fix/" >hexo deploy 会删除 CNAME 解决</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2021-11-16  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="hexo-deploy-时会删除-CNAME"><a href="#hexo-deploy-时会删除-CNAME" class="headerlink" title="hexo deploy 时会删除 CNAME"></a>hexo deploy 时会删除 CNAME</h1><p>在 GitHub 的 Settings -&gt; Pages 页面设置了自定义域名 <code>archibate.top</code>。<br>就可以实现 <code>archibate.top</code> 访问而不是 <code>archibate.github.io</code> 了。</p>
+<p>然而发现每次 <code>hexo d</code> 都会导致定制域名失效。</p>
+<p>原理：GitHub 所谓设置自定义域名，实质是在 gh-pages 分支添加了一个叫 <code>CNAME</code> 的<br>文本文件，内容为你的自定义域名。<br>而 <code>hexo d</code> 每次都会全部重写整个 gh-pages 的内容，也就是全新的 repo 去 force push<br>，导致 <code>CNAME</code> 文件被覆盖。</p>
+<p>解决：原来 hexo 的 <code>sources/</code> 文件夹内的内容都会直接出现在 gh-pages 里（下划线<br>开头的 <code>_posts</code> 除外）因此创建 <code>sources/CNAME</code>，内容为 <code>archibate.top</code> 即可在<br>下次 deploy 时候变成我的域名。</p>
+<h1 id="缺少-tags-和-categories-页面"><a href="#缺少-tags-和-categories-页面" class="headerlink" title="缺少 tags 和 categories 页面"></a>缺少 tags 和 categories 页面</h1><p>可以看到在主页顶部有个叫 Tags 的链接，点击后跳转到 <code>archibate.top/tags</code>，出现 404 错误。</p>
+<p>解决方法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page tags</span><br></pre></td></tr></table></figure>
+
+<p>打开 <code>sources/tags/index.md</code>，修改内容为：</p>
+<figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">title: Tag Cloud</span><br><span class="line">date: .......</span><br><span class="line"><span class="section">layout: tags</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<p>categories 同理。</p>
+<p>其中 <code>layout: tags</code> 表示使用 <code>themes/freemind.386/layout/tags.ejs</code> 作为渲染器（？）</p>
+
+	
+	</div>
+  <a type="button" href="/2021/11/16/hexo-deploy-removes-cname-fix/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2021/11/15/installing-claudia-encounters-error/" >安装 Claudia 主题出错</a>
 		</h3>
 		</div>
@@ -361,11 +401,11 @@ var _hmt = _hmt || [];
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
-			<a href="/2021/11/12/hello-world/" >Hello World</a>
+			<a href="/2021/11/15/hello-world/" >Hello World</a>
 		</h3>
 		</div>
 	<div class="col-md-4">
-		<div class="date">post @ 2021-11-12  </div>
+		<div class="date">post @ 2021-11-15  </div>
 		</div>
 	</div>
 	
@@ -391,7 +431,7 @@ var _hmt = _hmt || [];
 
 	
 	</div>
-  <a type="button" href="/2021/11/12/hello-world/#more" class="btn btn-default more">Read More</a>
+  <a type="button" href="/2021/11/15/hello-world/#more" class="btn btn-default more">Read More</a>
 </div>
 
 		
@@ -434,9 +474,9 @@ var _hmt = _hmt || [];
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/nodejs/">nodejs<span>1</span></a></li>
-		
 			<li><a href="/tags/cpp/">cpp<span>1</span></a></li>
+		
+			<li><a href="/tags/hexo/">hexo<span>3</span></a></li>
 		
 		 
 		</ul>
@@ -450,6 +490,10 @@ var _hmt = _hmt || [];
   <ul class="entry list-unstyled">
     
       <li>
+        <a href="/2021/11/16/hexo-deploy-removes-cname-fix/" ><i class="fa fa-file-o"></i>hexo deploy 会删除 CNAME 解决</a>
+      </li>
+    
+      <li>
         <a href="/2021/11/15/installing-claudia-encounters-error/" ><i class="fa fa-file-o"></i>安装 Claudia 主题出错</a>
       </li>
     
@@ -458,7 +502,7 @@ var _hmt = _hmt || [];
       </li>
     
       <li>
-        <a href="/2021/11/12/hello-world/" ><i class="fa fa-file-o"></i>Hello World</a>
+        <a href="/2021/11/15/hello-world/" ><i class="fa fa-file-o"></i>Hello World</a>
       </li>
     
   </ul>

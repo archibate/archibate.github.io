@@ -6,7 +6,7 @@
   <meta http-equiv="cache-control" content="no-cache">
   <meta http-equiv="expires" content="0">
   
-  <title>nodejs | 温馨的小窝</title>
+  <title>hexo deploy 会删除 CNAME 解决 | 温馨的小窝</title>
   <meta name="author" content="archibate">
   
   <meta name="description" content="archibate 的个人主页">
@@ -14,7 +14,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  
+  <meta property="og:title" content="hexo deploy 会删除 CNAME 解决"/>
   <meta property="og:site_name" content="温馨的小窝"/>
 
   
@@ -115,114 +115,113 @@ var _hmt = _hmt || [];
   	<div class="content">
     	 
 
-<!-- title -->
-<div class="page-header">
-  <h1 class="archive-title-tag"><i class="fa fa-archive"></i> nodejs</h1>
-</div>
 
-<div class="row page">
-  <!-- cols -->
-  
-  <div class="col-md-9">
 	
-
-	  <div id="top_search"></div>
-
-	  <div class="archive">
-		
-		
-		
-			
-			
-			<h4 class="archive-ul" data-toggle="collapse" data-target="#2021">2021<b class="caret"></b></h4>
-			<ul id="2021" class="collapse in">
-			
-		
-		<li class="listing-item">
-		<span class="date_class"> 2021-11-15 </span> &raquo;
-		
-		   <span class="title"><a href="/2021/11/15/installing-claudia-encounters-error/" >安装 Claudia 主题出错</a></span>
-		
-		</li>			
-		
-		</ul>
+		<div class="page-header">
+			<h1> hexo deploy 会删除 CNAME 解决</h1>
 		</div>
-
-</div> <!-- col-md-9/col-md-12 -->
-
-
-<div class="col-md-3">
-	<div id="sidebar">
 	
-			
-  <div id="site_search">
-   <div class="form-group">
-    <input type="text" id="local-search-input" name="q" results="0" placeholder="Search" class="st-search-input st-default-search-input form-control"/>
-   </div>  
-  <div id="local-search-result"></div>
-  </div>
 
 
-		
-			
-		
-			
-	<div class="widget">
-		<h4>Tag Cloud</h4>
-		<ul class="tag_box inline list-unstyled">		
-		
-			<li><a href="/tags/cpp/">cpp<span>1</span></a></li>
-		
-			<li><a href="/tags/nodejs/">nodejs<span>1</span></a></li>
-		
-		 
-		</ul>
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <h1 id="hexo-deploy-时会删除-CNAME"><a href="#hexo-deploy-时会删除-CNAME" class="headerlink" title="hexo deploy 时会删除 CNAME"></a>hexo deploy 时会删除 CNAME</h1><p>在 GitHub 的 Settings -&gt; Pages 页面设置了自定义域名 <code>archibate.top</code>。<br>就可以实现 <code>archibate.top</code> 访问而不是 <code>archibate.github.io</code> 了。</p>
+<p>然而发现每次 <code>hexo d</code> 都会导致定制域名失效。</p>
+<p>原理：GitHub 所谓设置自定义域名，实质是在 gh-pages 分支添加了一个叫 <code>CNAME</code> 的<br>文本文件，内容为你的自定义域名。<br>而 <code>hexo d</code> 每次都会全部重写整个 gh-pages 的内容，也就是全新的 repo 去 force push<br>，导致 <code>CNAME</code> 文件被覆盖。</p>
+<p>解决：原来 hexo 的 <code>sources/</code> 文件夹内的内容都会直接出现在 gh-pages 里（下划线<br>开头的 <code>_posts</code> 除外）因此创建 <code>sources/CNAME</code>，内容为 <code>archibate.top</code> 即可在<br>下次 deploy 时候变成我的域名。</p>
+<h1 id="缺少-tags-和-categories-页面"><a href="#缺少-tags-和-categories-页面" class="headerlink" title="缺少 tags 和 categories 页面"></a>缺少 tags 和 categories 页面</h1><p>可以看到在主页顶部有个叫 Tags 的链接，点击后跳转到 <code>archibate.top/tags</code>，出现 404 错误。</p>
+<p>解决方法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page tags</span><br></pre></td></tr></table></figure>
+
+<p>打开 <code>sources/tags/index.md</code>，修改内容为：</p>
+<figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">title: Tag Cloud</span><br><span class="line">date: .......</span><br><span class="line"><span class="section">layout: tags</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<p>categories 同理。</p>
+<p>其中 <code>layout: tags</code> 表示使用 <code>themes/freemind.386/layout/tags.ejs</code> 作为渲染器（？）</p>
+	  
 	</div>
 
+	<div>
+  	<center>
+	<div class="pagination">
 
-		
-			
-<div class="widget">
-  <h4>Recent Posts</h4>
-  <ul class="entry list-unstyled">
     
-      <li>
-        <a href="/2021/11/15/installing-claudia-encounters-error/" ><i class="fa fa-file-o"></i>安装 Claudia 主题出错</a>
-      </li>
     
-      <li>
-        <a href="/2021/11/15/implementing-ranges-library-from-scratch/" ><i class="fa fa-file-o"></i>手把手教你在 C++17 中从零开始实现 ranges 库</a>
-      </li>
+    <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
     
-      <li>
-        <a href="/2021/11/12/hello-world/" ><i class="fa fa-file-o"></i>Hello World</a>
-      </li>
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
     
-  </ul>
+    <a href="/2021/11/15/installing-claudia-encounters-error/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
 </div>
 
+    </center>
+	</div>
+	
+	<!-- comment -->
+	
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+
+	</div> <!-- col-md-9/col-md-12 -->
 		
-			
-<div class="widget">
-	<h4>Links</h4>
-	<ul class="blogroll list-unstyled">
 	
-		<li><i class="fa fa-github"></i><a href="https://github.com/archibate" title="My Github account." target="_blank">GitHub</a></li>
-	
-		<li><i class="fa fa-twitter"></i><a href="https://twitter.com/archibate" title="My Twitter account." target="_blank">Twitter</a></li>
-	
-		<li><i class="fa fa-github"></i><a href="https://github.com/archibate/archibate.github.io" title="Github repository of this blog." target="_blank">This Blog</a></li>
-	
-		<li><i class="fa fa-github"></i><a href="https://github.com/zenustech/zeno" title="Zeno Github repository." target="_blank">Zeno</a></li>
-	
-	</ul>
-</div>
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
 
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2021-11-16 
+	</div>
+	
 
+	<!-- categories -->
+    
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/hexo/">hexo<span>3</span></a></li>
+    </ul>
+	</div>
 		
-	</div> <!-- sidebar -->
-</div> <!-- col-md-3 -->
 
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+	</div>
+		
+
+</div><!-- row -->
 
 
 
