@@ -1,7 +1,7 @@
 ---
-title: hexo deploy 会删除 CNAME 解决
+title: hexo 部署时会删除 CNAME 解决
 date: 2021-11-16 08:16:19
-tags: hexo
+tags: git
 ---
 
 # hexo deploy 时会删除 CNAME
@@ -43,3 +43,59 @@ layout: tags
 categories 同理。
 
 其中 `layout: tags` 表示使用 `themes/freemind.386/layout/tags.ejs` 作为渲染器（？）
+
+# hexo 设置多个部署目标
+
+由于需要同时部署到 GitHub 和 Gitee，我希望 `hexo d` 能一次性部署两个。
+
+解决：将
+
+```yml
+deploy:
+  type: git
+  repo: https://github.com/archibate/archibate.github.io.git
+  branch: gh-pages
+```
+
+修改成：
+```yml
+deploy:
+  - type: git
+    repo: https://github.com/archibate/archibate.github.io.git
+    branch: gh-pages
+  - type: git
+    repo: https://gitee.com/archibate/archibate.git
+    branch: gh-pages
+```
+
+其中 `-` 是 YAML 的列表表达方式，相当于 JSON 的 `[]`：
+
+```json
+{deploy: [{type: "git", repo: "github"}, {type: "git", repo: "gitee"}]}
+```
+
+# Git 也可以设置多个 push 目标
+
+```bash
+vim .git/config
+```
+
+将：
+```gitconfig
+[remote "origin"]
+	url = https://github.com/archibate/archibate.github.io.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+```
+
+修改成：
+```gitconfig
+[remote "origin"]
+	url = https://github.com/archibate/archibate.github.io.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+	url = https://gitee.com/archibate/archibate.git
+```
+
+这样以后 `git push` 会先推 GitHub，再推 Gitee，pull 也能同时拉两个。
+
+就是有时候隔着代理推 Gitee 会出现 `443 SSL_Error` 的报错，以后研究
+一下怎么绕过 domestic IP。或者把 Gitee 的 remote 改成 ssh 的。
