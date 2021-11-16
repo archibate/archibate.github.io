@@ -6,7 +6,7 @@
   <meta http-equiv="cache-control" content="no-cache">
   <meta http-equiv="expires" content="0">
   
-  <title>hexo deploy 会删除 CNAME 解决 | 温馨的小窝</title>
+  <title>hexo 部署时会删除 CNAME 解决 | 温馨的小窝</title>
   <meta name="author" content="archibate">
   
   <meta name="description" content="archibate 的个人主页">
@@ -14,7 +14,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="hexo deploy 会删除 CNAME 解决"/>
+  <meta property="og:title" content="hexo 部署时会删除 CNAME 解决"/>
   <meta property="og:site_name" content="温馨的小窝"/>
 
   
@@ -118,7 +118,7 @@ var _hmt = _hmt || [];
 
 	
 		<div class="page-header">
-			<h1> hexo deploy 会删除 CNAME 解决</h1>
+			<h1> hexo 部署时会删除 CNAME 解决</h1>
 		</div>
 	
 
@@ -148,6 +148,26 @@ var _hmt = _hmt || [];
 
 <p>categories 同理。</p>
 <p>其中 <code>layout: tags</code> 表示使用 <code>themes/freemind.386/layout/tags.ejs</code> 作为渲染器（？）</p>
+<h1 id="hexo-设置多个部署目标"><a href="#hexo-设置多个部署目标" class="headerlink" title="hexo 设置多个部署目标"></a>hexo 设置多个部署目标</h1><p>由于需要同时部署到 GitHub 和 Gitee，我希望 <code>hexo d</code> 能一次性部署两个。</p>
+<p>解决：将</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">https://github.com/archibate/archibate.github.io.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">gh-pages</span></span><br></pre></td></tr></table></figure>
+
+<p>修改成：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">    <span class="attr">repo:</span> <span class="string">https://github.com/archibate/archibate.github.io.git</span></span><br><span class="line">    <span class="attr">branch:</span> <span class="string">gh-pages</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">    <span class="attr">repo:</span> <span class="string">https://gitee.com/archibate/archibate.git</span></span><br><span class="line">    <span class="attr">branch:</span> <span class="string">gh-pages</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>-</code> 是 YAML 的列表表达方式，相当于 JSON 的 <code>[]</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;deploy: [&#123;type: <span class="string">&quot;git&quot;</span>, repo: <span class="string">&quot;github&quot;</span>&#125;, &#123;type: <span class="string">&quot;git&quot;</span>, repo: <span class="string">&quot;gitee&quot;</span>&#125;]&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Git-也可以设置多个-push-目标"><a href="#Git-也可以设置多个-push-目标" class="headerlink" title="Git 也可以设置多个 push 目标"></a>Git 也可以设置多个 push 目标</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim .git/config</span><br></pre></td></tr></table></figure>
+
+<p>将：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[remote &quot;origin&quot;]</span><br><span class="line">	url = https://github.com/archibate/archibate.github.io.git</span><br><span class="line">	fetch = +refs/heads/*:refs/remotes/origin/*</span><br></pre></td></tr></table></figure>
+
+<p>修改成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[remote &quot;origin&quot;]</span><br><span class="line">	url = https://github.com/archibate/archibate.github.io.git</span><br><span class="line">	fetch = +refs/heads/*:refs/remotes/origin/*</span><br><span class="line">	url = https://gitee.com/archibate/archibate.git</span><br></pre></td></tr></table></figure>
+
+<p>这样以后 <code>git push</code> 会先推 GitHub，再推 Gitee，pull 也能同时拉两个。</p>
+<p>就是有时候隔着代理推 Gitee 会出现 <code>443 SSL_Error</code> 的报错，以后研究<br>一下怎么绕过 domestic IP。或者把 Gitee 的 remote 改成 ssh 的。</p>
 	  
 	</div>
 
