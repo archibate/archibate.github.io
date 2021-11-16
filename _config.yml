@@ -110,3 +110,8 @@ deploy:
   - type: git
     repo: https://gitee.com/archibate/archibate.git
     branch: gh-pages
+
+feed:
+    type: atom
+    path: atom.xml
+    limit: 20
