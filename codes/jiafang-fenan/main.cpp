@@ -12,25 +12,28 @@ const int n = 3;
 const int w = 20;
 const int nw = w * w * w;
 
-inline int c(int i)
+inline bool bad(int i)
 {
-    return i < 0 ? 0 : i > nw - 1 ? nw - 1 : i;
+    for (int s = 1; s < nw; s *= w) {
+        int j = (i / s) % w;
+        if (j <= 0 || j >= w - 1)
+            return true;
+    }
+    return false;
 }
 
 inline void kuo(int i, int z, int k)
 {
     arr2[i] -= k * n;
     for (int s = 1; s < nw; s *= w) {
-        arr2[i + z * s] += k;
+        if (!bad(i + z * s))
+            arr2[i + z * s] += k;
     }
 }
 
 void body(int odd, int i)
 {
-    for (int s = 1; s < nw; s *= w) {
-        int j = (i / s) % w;
-        if (j <= 1 || j >= w - 1) return;
-    }
+    if (bad(i)) return;
     if (arr[i] >= 2 * n) {
         // zhen kuo fu kuo
         kuo(i, 1, 1);
@@ -64,17 +67,22 @@ void body(int odd, int i)
 
 void comp(int odd)
 {
-    arr2 = arr;
+    for (int i = 0; i < nw; i++) {
+        arr2[i] = 0;
+    }
     for (int i = 0; i < nw; i++) {
         body(odd, i);
     }
-    arr.swap(arr2);
+    for (int i = 0; i < nw; i++) {
+        if (!bad(i))
+            arr[i] += arr2[i];
+    }
 }
 
 char color(int i)
 {
     i = abs(i);
-    if (i < n) return ' ';
+    if (i < n) return '_';
     if (i < 2*n) return '.';
     return '*';
 }
@@ -93,6 +101,7 @@ void show()
 int main()
 {
     arr.resize(nw);
+    arr2.resize(nw);
     arr[10 + w * 10 + w * w * 10] = 1024;
     for (int i = 0; i < 32; i++) {
         comp(i % 2);

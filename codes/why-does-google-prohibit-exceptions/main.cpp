@@ -1,6 +1,8 @@
 #include <vector>
 #include <cstdio>
 
+// try remove 'noexcept' to see what happens
+
 
 struct A {
     A() noexcept {
@@ -29,7 +31,6 @@ struct A {
         printf("%p: ~A()\n", this);
     }
 };
-
 
 int main() {
     std::vector<A> a(2);
