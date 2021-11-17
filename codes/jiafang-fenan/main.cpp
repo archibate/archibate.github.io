@@ -9,7 +9,7 @@ vector<int> arr;
 vector<int> arr2;
 
 const int n = 3;
-const int w = 20;
+const int w = 48;
 const int nw = w * w * w;
 
 inline bool bad(int i)
@@ -79,7 +79,7 @@ void comp(int odd)
     }
 }
 
-char color(int i)
+inline char color(int i)
 {
     i = abs(i);
     if (i < n) return ' ';
@@ -107,7 +107,7 @@ const float clrtab[5][3] = {
     {1, 0, 0},
 };
 
-int colorindex(int x)
+inline int colorindex(int x)
 {
     if (x <= -2 * n)
         return 1;
@@ -120,33 +120,54 @@ int colorindex(int x)
     return 4;
 }
 
-void dump()
+void dump(int frame)
 {
-    FILE *f_pos = fopen("/tmp/f_pos.obj", "w");
-    FILE *f_clr = fopen("/tmp/f_clr.obj", "w");
-    float fac = 1.f / w;
+    char buf[256];
+    sprintf(buf, "/tmp/clr%d.obj", frame);
+    FILE *f_clr = fopen(buf, "w");
+    for (int i = 0; i < nw; i++) {
+        int js[n], t = 0;
+        for (int s = 1; s < nw; s *= w) {
+            js[t++] = (i / s) % w;
+        }
+        int ci = colorindex(arr[i]);
+        float r = clrtab[ci][0], g = clrtab[ci][1], b = clrtab[ci][2];
+        fprintf(f_clr, "v %f %f %f\n", r, g, b);
+    }
+    fclose(f_clr);
+}
+
+void dumppos() {
+    FILE *f_pos = fopen("/tmp/pos0.obj", "w");
+    float fac = 2.f / w;
+    float off = -1.f;
     for (int i = 0; i < nw; i++) {
         int js[n], t = 0;
         for (int s = 1; s < nw; s *= w) {
             js[t++] = (i / s) % w;
         }
         float x = js[0] * fac, y = js[1] * fac, z = js[2] * fac;
-        fprintf(f_pos, "v %f %f %f\n", x, y, z);
-        int ci = colorindex(arr[i]);
-        float r = clrtab[ci][0], g = clrtab[ci][1], b = clrtab[ci][2];
-        fprintf(f_clr, "v %f %f %f\n", r, g, b);
+        fprintf(f_pos, "v %f %f %f\n", x + off, y + off, z + off);
     }
+    fclose(f_pos);
+}
+
+inline void assign(int x, int y, int z, int v) {
+    arr[x + w * y + w * w * z] = v;
 }
 
 int main()
 {
     arr.resize(nw);
     arr2.resize(nw);
-    arr[10 + w * 10 + w * w * 10] = 1024;
-    for (int i = 0; i < 32; i++) {
+    dumppos();
+    assign(w / 2, w / 2, w / 2, 1024);
+    for (int i = 0; i < 100; i++) {
+        printf("frame %d\n", i);
         comp(i % 2);
-        show();
-        usleep(100000);
+        //show();
+        dump(i);
+        //usleep(100000);
     }
     return 0;
 }

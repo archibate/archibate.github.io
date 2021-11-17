@@ -1,3 +1,3 @@
 x:
-	g++ main.cpp -o a.out
+	g++ -O3 main.cpp -o a.out
 	./a.out
