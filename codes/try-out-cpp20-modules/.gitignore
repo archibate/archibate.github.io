@@ -1,3 +1,6 @@
 *.pcm
 *.o
 a.out
+.xmake
+gcm.cache
+build

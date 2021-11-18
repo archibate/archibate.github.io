@@ -1,6 +1,6 @@
 module;
 
-import <typeinfo>;
+#include <typeinfo>
 
 export module helloworld;
 
