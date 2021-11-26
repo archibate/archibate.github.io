@@ -25,3 +25,10 @@ extern "C" DLLEXPORT void print_str(const char *s)
 {
     printf("str is: %s\n", s);
 }
+
+extern "C" DLLEXPORT void test_array(float *base, size_t size)
+{
+    for (size_t i = 0; i < size; i++) {
+        printf("%ld: %f\n", i, base[i]);
+    }
+}

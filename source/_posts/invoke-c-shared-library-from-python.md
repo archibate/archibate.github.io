@@ -257,5 +257,21 @@ str is: Hello, C++!
 
 有时候我们需要把一个 Python 端的数组传入/传出 C 语言的部分，可以传一个指针 + 一个大小来表示数组：
 
-```bash
+```py
+mylib.test_array.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+mylib.test_array.restype = None
+
+import numpy as np
+
+arr = np.random.rand(32).astype(np.float32)
+mylib.test_array(arr.ctypes.data, arr.shape[0])
+```
+
+```cpp
+extern "C" DLLEXPORT void test_array(float *base, size_t size)
+{
+    for (size_t i = 0; i < size; i++) {
+        printf("%ld: %f\n", i, base[i]);
+    }
+}
 ```

@@ -24,3 +24,11 @@ mylib.print_str.restype = None
 print(mylib.twice_int(21))       # 42
 print(mylib.twice_float(3.14))   # 6.28
 mylib.print_str(b'Hello, C++!')
+
+mylib.test_array.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+mylib.test_array.restype = None
+
+import numpy as np
+
+arr = np.random.rand(32).astype(np.float32)
+mylib.test_array(arr.ctypes.data, arr.shape[0])
