@@ -14,17 +14,13 @@ def load_library(path, name):
 
 mylib = load_library('build', 'mylib')
 
-mylib.say_hello()
+mylib.twice_int.argtypes = [ctypes.c_int]
+mylib.twice_int.restype = ctypes.c_int
+mylib.twice_float.argtypes = [ctypes.c_float]
+mylib.twice_float.restype = ctypes.c_float
+mylib.print_str.argtypes = [ctypes.c_char_p]
+mylib.print_str.restype = None
 
-print(mylib.twice_int(32))
-
-s = b'hello'
-mylib.print_str(ctypes.c_char_p(s))
-
-s = '我系佳佳辉'.encode()
-mylib.print_str(ctypes.c_char_p(s))
-
-import numpy as np
-
-x = np.random.rand(16).astype(np.float32)
-mylib.test_array(ctypes.c_void_p(x.ctypes.data), x.shape[0])
+print(mylib.twice_int(21))       # 42
+print(mylib.twice_float(3.14))   # 6.28
+mylib.print_str(b'Hello, C++!')
