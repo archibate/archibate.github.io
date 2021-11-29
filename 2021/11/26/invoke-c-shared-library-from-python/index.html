@@ -1,0 +1,340 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Python 调用 C 语言动态链接库里的函数 | 温馨的小窝</title>
+  <meta name="author" content="archibate">
+  
+  <meta name="description" content="archibate 的个人主页">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Python 调用 C 语言动态链接库里的函数"/>
+  <meta property="og:site_name" content="温馨的小窝"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70812759-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?cb5448498d7169c668b07c2b255d62c1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="温馨的小窝" type="application/atom+xml">
+</head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">温馨的小窝</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Python 调用 C 语言动态链接库里的函数</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <p>源代码在: <a target="_blank" rel="noopener" href="https://github.com/archibate/archibate.github.io/tree/master/codes/invoke-c-shared-library-from-python">https://github.com/archibate/archibate.github.io/tree/master/codes/invoke-c-shared-library-from-python</a></p>
+<p>最近需要在 Blender 里调用 Zeno 的 C++ 部分，本来一直在用 Pybind11，但是他一旦换一个 Python 版本就会加载失败，同时一个个去调用 def 也非常麻烦。<br>目前主要是传指针字符串之类的，没有对复杂数据结构和类的深度绑定的需求，因此我开始探索另一种兼容性更好的方案——甚至不需要 Python 的头文件。</p>
+<p>原来 Python 支持导入任意由 C 语言编写的动态链接库（<code>.so</code> 或者 <code>.dll</code>），并调用其中的函数。<br>这其中又有哪些坑呢，今天就让我们一探究竟。</p>
+<h1 id="符号导出机制"><a href="#符号导出机制" class="headerlink" title="符号导出机制"></a>符号导出机制</h1><p>针对不同的系统，分类讨论：</p>
+<h2 id="Linux-很简单"><a href="#Linux-很简单" class="headerlink" title="Linux 很简单"></a>Linux 很简单</h2><p>首先用 CMake 创建一个 shared library 目标：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CMakeLists.txt</span></span><br><span class="line"><span class="keyword">add_library</span>(mylib SHARED mylib.c)</span><br></pre></td></tr></table></figure>
+
+<p>C 语言源代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// mylib.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Hello, world!\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cmake -B build</span><br><span class="line">cmake --build build</span><br></pre></td></tr></table></figure>
+
+<p>编译后会得到 <code>build/libmylib.so</code> 。</p>
+<p>然后在 Python 脚本里写：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ctypes</span><br><span class="line"></span><br><span class="line">mylib = ctypes.cdll.LoadLibrary(<span class="string">&#x27;build/libmylib.so&#x27;</span>)</span><br><span class="line">mylib.say_hello()</span><br></pre></td></tr></table></figure>
+
+<p>成功打印：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hello, world!</span><br></pre></td></tr></table></figure>
+
+<h2 id="Windows-不一样"><a href="#Windows-不一样" class="headerlink" title="Windows 不一样"></a>Windows 不一样</h2><p>然而我们试着如果用同样的配置在 Windows 上测试：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ctypes</span><br><span class="line"></span><br><span class="line">mylib = ctypes.cdll.LoadLibrary(<span class="string">&#x27;build\\mylib.dll&#x27;</span>)</span><br><span class="line">mylib.say_hello()</span><br></pre></td></tr></table></figure>
+
+<p>会发现调用出错：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AttributeError: build\mylib.dll: undefined symbol: say_hello</span><br></pre></td></tr></table></figure>
+
+<p>这是什么原因呢？</p>
+<p>原来 Windows 的设计为了安全，默认不会把 DLL 的所有符号导出，需要这样写：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// mylib.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">__declspec(dllexport) <span class="function"><span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Hello, world!\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">this_func_wont_export</span><span class="params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要导出的，前面加上 <code>__declspec(dllexport)</code>，不希望导出的，就不加。<br>如果想要和 Linux 一样默认全部导出，也可以在 CMake 里这样指定：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CMakeLists.txt</span></span><br><span class="line"><span class="keyword">set</span>(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS <span class="keyword">ON</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_library</span>(mylib SHARED mylib.c)</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-也可以默认不导出"><a href="#Linux-也可以默认不导出" class="headerlink" title="Linux 也可以默认不导出"></a>Linux 也可以默认不导出</h2><p>反过来，Linux 也可以修改成默认不导出，只有指定的符号才导出：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(CMAKE_C_VISIBILITY_PRESET hidden)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_VISIBILITY_PRESET hidden)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_library</span>(mylib SHARED mylib.c)</span><br></pre></td></tr></table></figure>
+
+<p>然后像这样指定前缀：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// mylib.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">__attribute__((visibility(<span class="string">&quot;default&quot;</span>))) <span class="function"><span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Hello, world!\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">this_func_wont_export</span><span class="params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以用一个宏来统一 Windows 和 Linux 的导出指定前缀：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> _WIN32  <span class="comment">// 如果在 Windows 上</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DLLEXPORT __declspec(dllexport)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span>          <span class="comment">// 否则在 Unix 类系统上</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DLLEXPORT __attribute__((visibility(<span class="meta-string">&quot;default&quot;</span>)))</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">DLLEXPORT <span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Hello, world!\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="C-大不一样"><a href="#C-大不一样" class="headerlink" title="C++ 大不一样"></a>C++ 大不一样</h1><p>然而，如果我们用的不是 C 语言，而是 C++，还是会出现符号找不到的问题：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AttributeError: build/mylib.so: undefined symbol: say_hello</span><br></pre></td></tr></table></figure>
+
+<p>这是为什么呢？我们来用 Linux 下的 <code>nm</code> 小工具分析一下生成的动态链接库。</p>
+<p>用 C 语言编译：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ nm build/libmylib.so | grep -w T</span><br><span class="line">0000000000001109 T say_hello</span><br></pre></td></tr></table></figure>
+
+<p>用 C++ 编译：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ nm build/libmylib.so | grep -w T</span><br><span class="line">0000000000001139 T _Z9say_hellov</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 C++ 中原本叫 <code>say_hello</code> 的函数变成了一个奇怪的名字： <code>_Z9say_hellov</code><br>这是为什么呢？</p>
+<h2 id="C-函数名重组机制"><a href="#C-函数名重组机制" class="headerlink" title="C++ 函数名重组机制"></a>C++ 函数名重组机制</h2><p>原来是 C++ 为了实现函数的重载和名字空间等特性，对函数名对应的符号进行了一些魔改，<br>C++ 魔改的符号都以 <code>_Z</code> 开头，后面紧跟着一个数字，表示接下来的符号长度，这里<br><code>say_hello</code> 的字符串长度为 9，因此是 <code>_Z9</code>，然后 <code>v</code> 表示函数的参数是 void，也就<br>是没有参数。</p>
+<p>解决方法是要么直接在 Python 里写重组后的符号名：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ctypes</span><br><span class="line"></span><br><span class="line">mylib = ctypes.cdll.LoadLibrary(<span class="string">&#x27;build/libmylib.so&#x27;</span>)</span><br><span class="line">mylib._Z9say_hellov()</span><br></pre></td></tr></table></figure>
+
+<p>要么在 C++ 源文件里使用 <code>extern &quot;C&quot;</code> 声明为 C 兼容函数（但是没法重载了）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function">DLLEXPORT <span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Hello, world!\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>个人推荐后面一种方案。</p>
+<h1 id="读取哪一个文件"><a href="#读取哪一个文件" class="headerlink" title="读取哪一个文件"></a>读取哪一个文件</h1><p>这里我们硬编码了 <code>build\\mylib.dll</code> 等路径，导致无法跨平台。<br>可以让 Python 运行时动态判断当前是什么系统，读取不同的文件路径和扩展名。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ctypes</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">load_library</span>(<span class="params">path, name</span>):</span></span><br><span class="line">    <span class="keyword">if</span> sys.platform == <span class="string">&#x27;win32&#x27;</span>:       <span class="comment"># *.dll</span></span><br><span class="line">        <span class="keyword">return</span> ctypes.cdll.LoadLibrary(os.path.join(path, name + <span class="string">&#x27;.dll&#x27;</span>))</span><br><span class="line">    <span class="keyword">elif</span> sys.platform == <span class="string">&#x27;linux&#x27;</span>:     <span class="comment"># lib*.so</span></span><br><span class="line">        <span class="keyword">return</span> ctypes.cdll.LoadLibrary(os.path.join(path, <span class="string">&#x27;lib&#x27;</span> + name + <span class="string">&#x27;.so&#x27;</span>))</span><br><span class="line">    <span class="keyword">elif</span> sys.platform == <span class="string">&#x27;darwin&#x27;</span>:    <span class="comment"># lib*.dylib</span></span><br><span class="line">        <span class="keyword">return</span> ctypes.cdll.LoadLibrary(os.path.join(path, <span class="string">&#x27;lib&#x27;</span> + name + <span class="string">&#x27;.dylib&#x27;</span>))</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> ImportError(<span class="string">&#x27;Unsupported platform: &#x27;</span> + sys.platform)</span><br><span class="line"></span><br><span class="line">mylib = load_library(<span class="string">&#x27;build&#x27;</span>, <span class="string">&#x27;mylib&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这里我们用了 <code>sys.platform</code> 判断当前操作系统，<code>os.path.join</code> 在 Unix 类系统上是 <code>&#39;/&#39;.join</code>，<br>Windows 上是 <code>&#39;\\&#39;.join</code>。<code>path</code> 用作读取文件所在的目录，<code>name</code> 和 CMake 的目标名相同。</p>
+<h1 id="函数参数与返回"><a href="#函数参数与返回" class="headerlink" title="函数参数与返回"></a>函数参数与返回</h1><p>让我们定义几个带参数的函数作为测试：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function">DLLEXPORT <span class="keyword">int</span> <span class="title">twice_int</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x * <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function">DLLEXPORT <span class="keyword">float</span> <span class="title">twice_float</span><span class="params">(<span class="keyword">float</span> x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x * <span class="number">2.f</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function">DLLEXPORT <span class="keyword">void</span> <span class="title">print_str</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *s)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;str is: %s\n&quot;</span>, s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Python 调用的 C 函数可以有参数和返回值，不过 Python 实际并不知道有几个参数，分别是什么类型，<br>所以需要我们自己去指定参数和返回值的类型（如果不指定，默认参数全部为 int，返回值也为 int）：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mylib.twice_int.argtypes = [ctypes.c_int]</span><br><span class="line">mylib.twice_int.restype = ctypes.c_int</span><br><span class="line">mylib.twice_float.argtypes = [ctypes.c_float]</span><br><span class="line">mylib.twice_float.restype = ctypes.c_float</span><br><span class="line">mylib.print_str.argtypes = [ctypes.c_char_p]</span><br><span class="line">mylib.print_str.restype = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(mylib.twice_int(<span class="number">21</span>))       <span class="comment"># 42</span></span><br><span class="line"><span class="built_in">print</span>(mylib.twice_float(<span class="number">3.14</span>))   <span class="comment"># 6.28</span></span><br><span class="line">mylib.print_str(<span class="string">b&#x27;Hello, C++!&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ python main.py</span><br><span class="line">42</span><br><span class="line">6.28000020980835</span><br><span class="line">str is: Hello, C++!</span><br></pre></td></tr></table></figure>
+
+<h2 id="传递-NumPy-数组"><a href="#传递-NumPy-数组" class="headerlink" title="传递 NumPy 数组"></a>传递 NumPy 数组</h2><p>有时候我们需要把一个 Python 端的数组传入/传出 C 语言的部分，可以传一个指针 + 一个大小来表示数组：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mylib.test_array.argtypes = [ctypes.c_void_p, ctypes.c_size_t]</span><br><span class="line">mylib.test_array.restype = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">arr = np.random.rand(<span class="number">32</span>).astype(np.float32)</span><br><span class="line">mylib.test_array(arr.ctypes.data, arr.shape[<span class="number">0</span>])</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function">DLLEXPORT <span class="keyword">void</span> <span class="title">test_array</span><span class="params">(<span class="keyword">float</span> *base, <span class="keyword">size_t</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; size; i++) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%ld: %f\n&quot;</span>, i, base[i]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意到这里指针意味着按引用传递，因此也可以用于返回一个数组。</p>
+	  
+	</div>
+
+	<div>
+  	<center>
+	<div class="pagination">
+
+    
+    
+    <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2021/11/16/hexo-deploy-removes-cname-fix/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+
+	</div> <!-- col-md-9/col-md-12 -->
+		
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2021-11-26 
+	</div>
+	
+
+	<!-- categories -->
+    
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/python/">python<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+	</div>
+		
+
+</div><!-- row -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  &copy; 2021 archibate
+  
+      with help from <a href="http://hexo.io/" target="_blank">Hexo</a>,<a target="_blank" rel="noopener" href="http://github.com/wzpan/hexo-theme-freemind/">Freemind</a>,<a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a> and <a href="http://getbootstrap.com/" target="_blank">BOOTSTRA.386</a>. 
+     <br> Theme by <a target="_blank" rel="noopener" href="http://github.com/wzpan/hexo-theme-freemind/">Freemind.386</a>.    
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>
